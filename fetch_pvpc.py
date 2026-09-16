@@ -35,6 +35,8 @@ def fetch_pvpc(target: date):
                  "Content-Type": "application/json", "x-api-key": TOKEN},
         params={"start_date": start.isoformat(), "end_date": end.isoformat(),
                 "time_trunc": "hour", "time_agg": "average", "geo_ids[]": GEO_ID})
+    if r.status_code in (401, 403):
+        sys.exit(f"Token ESIOS rechazado (HTTP {r.status_code}). Revisa el secreto ESIOS_TOKEN.")
     r.raise_for_status()
     by_hour = {}
     for v in r.json()["indicator"]["values"]:
