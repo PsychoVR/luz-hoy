@@ -1,0 +1,32 @@
+name: PVPC diario
+
+on:
+  schedule:
+    # Cron en UTC. 18:30 UTC = 20:30 en verano / 19:30 en invierno (ESIOS publica ~20:15)
+    - cron: "30 18 * * *"
+    - cron: "15 20 * * *"   # segundo intento por si aún no estaba publicado
+    - cron: "15 5 * * *"    # respaldo por la mañana (precios de hoy)
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  actualizar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install requests
+      - run: python fetch_pvpc.py
+        env:
+          ESIOS_TOKEN: ${{ secrets.ESIOS_TOKEN }}
+      - name: Publicar data.json
+        run: |
+          git config user.name "pvpc-bot"
+          git config user.email "pvpc-bot@users.noreply.github.com"
+          git add docs/data.json
+          git diff --cached --quiet || git commit -m "PVPC $(date -u +%F' '%H:%M)"
+          git push
