@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#F2F4F1">
+<title>Luz hoy</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F2F4F1; --ink: #1B2A2F; --muted: #6B7A7F; --line: #D9DEDB;
+    --cheap: #2F8F5B; --mid: #E1B252; --dear: #C94A3B; --cheap-soft: #DDEFE4;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--ink);
+    font-family: "Instrument Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-feature-settings: "tnum"; -webkit-text-size-adjust: 100%; }
+  main { max-width: 480px; margin: 0 auto; padding: max(16px, env(safe-area-inset-top)) 18px 40px; }
+
+  header { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 20px; }
+  h1 { font-size: 22px; font-weight: 600; margin: 0; letter-spacing: -0.01em; }
+  h1 small { display: block; font-size: 13px; font-weight: 400; color: var(--muted); margin-top: 2px; }
+  .toggle { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; padding: 2px; background: #fff; }
+  .toggle button { border: 0; background: transparent; color: var(--muted); font: inherit; font-size: 13px;
+    padding: 6px 12px; border-radius: 999px; cursor: pointer; }
+  .toggle button[aria-pressed="true"] { background: var(--ink); color: #fff; }
+  .toggle button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+
+  .now { display: flex; align-items: baseline; gap: 10px; margin: 0 0 22px; }
+  .now .price { font-size: 40px; font-weight: 700; letter-spacing: -0.02em; line-height: 1; }
+  .now .price span { font-size: 15px; font-weight: 500; color: var(--muted); margin-left: 4px; }
+  .now .tag { font-size: 14px; font-weight: 600; padding: 4px 10px; border-radius: 6px; }
+  .tag.cheap { background: var(--cheap-soft); color: #1D6A40; }
+  .tag.mid   { background: #F7EBCB; color: #7A5A0E; }
+  .tag.dear  { background: #F5DCD7; color: #8E2E22; }
+
+  /* Hero: la tira de 24 horas */
+  .strip { position: relative; height: 150px; display: grid; grid-template-columns: repeat(24, 1fr); gap: 2px;
+    align-items: end; margin-bottom: 4px; }
+  .strip .bar { border-radius: 3px 3px 0 0; min-height: 4px; position: relative; }
+  .strip .bar.cheap { background: var(--cheap); } .strip .bar.mid { background: var(--mid); } .strip .bar.dear { background: var(--dear); }
+  .strip .bar.now::after { content: ""; position: absolute; left: 50%; top: -12px; width: 0; height: 0; transform: translateX(-50%);
+    border: 5px solid transparent; border-top: 7px solid var(--ink); }
+  .strip .bar.picked { outline: 2px solid var(--ink); outline-offset: -2px; }
+  .hours { display: grid; grid-template-columns: repeat(24, 1fr); gap: 2px; font-size: 10px; color: var(--muted); margin-bottom: 26px; }
+  .hours span { text-align: center; }
+  .hours span:nth-child(3n+1) { color: var(--ink); }
+
+  /* Recomendaciones */
+  ul.plan { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line); }
+  ul.plan li { display: grid; grid-template-columns: 1fr auto; grid-template-rows: auto auto; column-gap: 12px;
+    padding: 14px 0; border-bottom: 1px solid var(--line); align-items: baseline; }
+  ul.plan .name { grid-column: 1; grid-row: 1; font-size: 15px; font-weight: 500; }
+  ul.plan .detail { grid-column: 1; grid-row: 2; }
+  ul.plan .when { grid-column: 2; grid-row: 1 / span 2; align-self: center; white-space: nowrap;
+    font-size: 24px; font-weight: 700; letter-spacing: -0.02em; text-align: right; }
+  ul.plan .when b { font-weight: 700; } ul.plan .when i { font-style: normal; font-weight: 400; color: var(--muted); font-size: 16px; }
+  ul.plan .detail { font-size: 13px; color: var(--muted); margin-top: 3px; }
+
+  .stats { display: flex; justify-content: space-between; margin-top: 18px; font-size: 13px; color: var(--muted); }
+  .stats b { color: var(--ink); font-weight: 600; }
+  .foot { margin-top: 26px; font-size: 12px; color: var(--muted); }
+  .empty { padding: 32px 0; color: var(--muted); font-size: 15px; line-height: 1.5; }
+  @media (prefers-reduced-motion: no-preference) { .strip .bar { transition: height .25s ease; } }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1 id="title">Luz hoy<small id="subtitle">cargando…</small></h1>
+    <div class="toggle" role="group" aria-label="Día">
+      <button id="btnHoy" aria-pressed="true">Hoy</button>
+      <button id="btnMan" aria-pressed="false">Mañana</button>
+    </div>
+  </header>
+
+  <div id="content"></div>
+</main>
+
+<script>
+const DIAS = ["domingo","lunes","martes","miércoles","jueves","viernes","sábado"];
+const $ = s => document.querySelector(s);
+const pad = n => String(n).padStart(2, "0");
+const madridNow = () => new Date(new Date().toLocaleString("en-US", { timeZone: "Europe/Madrid" }));
+const isoDate = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+
+let DATA = null, view = "hoy";
+
+function tercile(prices) {
+  const s = [...prices].sort((a,b) => a-b);
+  return { lo: s[7], hi: s[15] };   // 8 baratas, 8 medias, 8 caras
+}
+const cls = (p, t) => p <= t.lo ? "cheap" : p >= t.hi ? "dear" : "mid";
+const cents = p => (p*100).toFixed(1).replace(".", ",");
+
+function render() {
+  const now = madridNow();
+  const target = new Date(now); if (view === "man") target.setDate(target.getDate() + 1);
+  const key = isoDate(target);
+  const day = DATA && DATA.days[key];
+  $("#btnHoy").setAttribute("aria-pressed", view === "hoy");
+  $("#btnMan").setAttribute("aria-pressed", view === "man");
+  $("#title").firstChild.textContent = view === "hoy" ? "Luz hoy" : "Luz mañana";
+  $("#subtitle").textContent = `${DIAS[target.getDay()]} ${pad(target.getDate())}/${pad(target.getMonth()+1)}`;
+
+  if (!day) {
+    $("#content").innerHTML = `<p class="empty">${view === "man"
+      ? "Los precios de mañana se publican sobre las 20:15. Vuelve a mirar más tarde."
+      : "Todavía no hay datos de hoy. La actualización automática corre cada noche y a las 7:15; también puedes lanzarla a mano desde GitHub → Actions."}</p>`;
+    return;
+  }
+
+  const { prices, plan } = day;
+  const t = tercile(prices);
+  const max = Math.max(...prices), min = Math.min(...prices);
+  const avg = prices.reduce((a,b) => a+b, 0) / 24;
+  const picked = new Set(plan.flatMap(p => Array.from({length: p.end - p.start}, (_, i) => p.start + i)));
+  const h = now.getHours();
+
+  const nowBlock = view === "hoy" ? `
+    <div class="now">
+      <div class="price">${cents(prices[h])}<span>c/kWh a las ${pad(h)}:00</span></div>
+      <span class="tag ${cls(prices[h], t)}">${{cheap:"barata", mid:"normal", dear:"cara"}[cls(prices[h], t)]}</span>
+    </div>` : "";
+
+  const bars = prices.map((p, i) => {
+    const pct = 8 + 92 * (p - min) / (max - min || 1);
+    return `<div class="bar ${cls(p, t)} ${view === "hoy" && i === h ? "now" : ""} ${picked.has(i) ? "picked" : ""}"
+      style="height:${pct}%" title="${pad(i)}:00 · ${cents(p)} c/kWh"></div>`;
+  }).join("");
+  const labels = prices.map((_, i) => `<span>${i % 3 === 0 ? pad(i) : ""}</span>`).join("");
+
+  const items = [...plan].sort((a,b) => a.start - b.start).map(p => `
+    <li>
+      <div class="name">${p.nombre}</div>
+      <div class="when"><b>${pad(p.start)}:00</b><i> – ${pad(p.end)}:00</i></div>
+      <div class="detail">${cents(p.precio_medio)} c/kWh · ${p.ahorro_pct}% menos que la peor franja</div>
+    </li>`).join("");
+
+  const minH = prices.indexOf(min), maxH = prices.indexOf(max);
+  $("#content").innerHTML = `
+    ${nowBlock}
+    <div class="strip" aria-label="Precio por hora">${bars}</div>
+    <div class="hours">${labels}</div>
+    <ul class="plan">${items}</ul>
+    <div class="stats">
+      <span>Mín <b>${cents(min)}</b> (${pad(minH)}h)</span>
+      <span>Media <b>${cents(avg)}</b></span>
+      <span>Máx <b>${cents(max)}</b> (${pad(maxH)}h)</span>
+    </div>
+    <p class="foot">PVPC Península sin IVA, Red Eléctrica (ESIOS). Actualizado ${DATA.updated.replace("T"," ").slice(0,16)}.</p>`;
+}
+
+$("#btnHoy").onclick = () => { view = "hoy"; render(); };
+$("#btnMan").onclick = () => { view = "man"; render(); };
+
+fetch("data.json?" + Date.now(), { cache: "no-store" })
+  .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+  .then(d => { DATA = d; render(); })
+  .catch(() => { $("#content").innerHTML = `<p class="empty">No se pudo leer data.json. Comprueba que la Action se ha ejecutado al menos una vez.</p>`; $("#subtitle").textContent = ""; });
+
+// Cambia de hora sola si la dejas abierta
+setInterval(() => DATA && render(), 60000);
+</script>
+</body>
+</html>
