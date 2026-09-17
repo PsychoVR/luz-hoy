@@ -1,0 +1,75 @@
+{
+ "updated": "2026-09-17T09:31+02:00",
+ "days": {
+  "2026-09-17": {
+   "prices": [
+    0.18528,
+    0.1674,
+    0.1473,
+    0.136,
+    0.14158,
+    0.15166,
+    0.20364,
+    0.25205,
+    0.27028,
+    0.20643,
+    0.18605,
+    0.09804,
+    0.08488,
+    0.08526,
+    0.01622,
+    0.02333,
+    0.04995,
+    0.13029,
+    0.28232,
+    0.33822,
+    0.35945,
+    0.35202,
+    0.26311,
+    0.24718
+   ],
+   "plan": [
+    {
+     "key": "horno",
+     "nombre": "Horno",
+     "start": 14,
+     "end": 15,
+     "precio_medio": 0.01622,
+     "ahorro_pct": 95
+    },
+    {
+     "key": "lavadora",
+     "nombre": "Lavadora",
+     "start": 15,
+     "end": 17,
+     "precio_medio": 0.03664,
+     "ahorro_pct": 90
+    },
+    {
+     "key": "secador",
+     "nombre": "Secador",
+     "start": 17,
+     "end": 19,
+     "precio_medio": 0.20631,
+     "ahorro_pct": 42
+    },
+    {
+     "key": "lavavajillas",
+     "nombre": "Lavavajillas",
+     "start": 12,
+     "end": 14,
+     "precio_medio": 0.08507,
+     "ahorro_pct": 76
+    },
+    {
+     "key": "carga",
+     "nombre": "Cargar móviles y portátiles",
+     "start": 2,
+     "end": 5,
+     "precio_medio": 0.14163,
+     "ahorro_pct": 60
+    }
+   ]
+  }
+ }
+}
