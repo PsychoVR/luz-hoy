@@ -168,9 +168,13 @@ def main():
     if os.path.exists(OUT):
         with open(OUT) as f:
             data = json.load(f)
-    today = datetime.now(TZ).date()
+    now = datetime.now(TZ)
+    today = now.date()
+    targets = [today]
+    if now.hour >= 20:  # el PVPC de mañana se publica sobre las 20:15
+        targets.append(today + timedelta(days=1))
     got = 0
-    for target in (today, today + timedelta(days=1)):
+    for target in targets:
         key = target.isoformat()
         existing = data["days"].get(key)
         if existing and "prices15" in existing and existing.get("v") == 2:
