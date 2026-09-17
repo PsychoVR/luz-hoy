@@ -66,7 +66,7 @@
   .next b { color: var(--ink); }
 
   /* Gráfica 08:00 → 07:00 */
-  .chart { position: relative; }
+  .chart { position: relative; margin-top: 36px; }
   .strip { position: relative; height: 130px; display: grid; grid-template-columns: repeat(24, 1fr); gap: 3px; align-items: end; }
   .bar { position: relative; border-radius: 6px 6px 3px 3px; min-height: 6px; opacity: .92; transition: height .3s ease; }
   .bar.cheap { background: linear-gradient(180deg, var(--cheap), color-mix(in srgb, var(--cheap) 60%, transparent)); }
@@ -88,9 +88,16 @@
   .item { display: grid; grid-template-columns: 44px 1fr auto; align-items: center; gap: 14px; padding: 14px 16px; }
   .icon { width: 44px; height: 44px; border-radius: 14px; display: grid; place-items: center; font-size: 22px; background: var(--card2); }
   .item .name { font-size: 15px; font-weight: 700; }
+  .item .dur { font-size: 11px; font-weight: 700; color: var(--muted); background: var(--card2); padding: 2px 7px; border-radius: 999px; margin-left: 4px; vertical-align: middle; white-space: nowrap; }
   .item .meta { font-size: 12px; color: var(--muted); margin-top: 3px; font-weight: 600; }
   .item .meta b { font-weight: 800; }
   .item .meta b.cheap { color: var(--cheap); } .item .meta b.mid { color: var(--mid); } .item .meta b.dear { color: var(--dear); }
+  .item .cost { font-size: 12px; color: var(--muted); font-weight: 600; margin-top: 4px; }
+  .item .cost b { color: var(--ink); font-weight: 800; }
+  .summary { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 10px; padding: 16px 14px; }
+  .summary .k { font-size: 10px; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; line-height: 1.3; }
+  .summary .v { font-size: 19px; font-weight: 800; letter-spacing: -0.02em; margin-top: 6px; }
+  .summary .v.cheap { color: var(--cheap); } .summary .v.dear { color: var(--dear); }
   .when { text-align: right; }
   .when .h { font-size: 24px; font-weight: 800; letter-spacing: -0.03em; line-height: 1; }
   .when .to { font-size: 12px; font-weight: 700; color: var(--muted); margin-top: 3px; }
@@ -121,7 +128,7 @@
 
 <script>
 const DIAS = ["domingo","lunes","martes","miércoles","jueves","viernes","sábado"];
-const ICONS = { horno: "🔥", lavadora: "🫧", secador: "🌬️", lavavajillas: "🍽️", carga: "🔌" };
+const ICONS = { horno: "🔥", lavadora: "🫧", secadora: "👕", secador: "💨", lavavajillas: "🍽️", carga: "🔌" };
 const START_HOUR = 8;                       // la gráfica empieza a las 08:00
 const ORDER = Array.from({ length: 24 }, (_, i) => (START_HOUR + i) % 24);
 const $ = s => document.querySelector(s);
@@ -129,18 +136,20 @@ const pad = n => String(n).padStart(2, "0");
 const madridNow = () => new Date(new Date().toLocaleString("en-US", { timeZone: "Europe/Madrid" }));
 const isoDate = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
 const cents = p => (p * 100).toFixed(1).replace(".", ",");
+const hm = t => `${pad(Math.floor(t))}:${pad(Math.round((t % 1) * 60))}`;   // 13.25 -> 13:15
+const eur = e => e.toFixed(2).replace(".", ",") + " €";
+const dur = t => { const m = Math.round(t * 60); return m < 60 ? `${m} min` : m % 60 ? `${Math.floor(m/60)} h ${m%60} min` : `${m/60} h`; };
 const tercile = prices => { const s = [...prices].sort((a,b) => a-b); return { lo: s[7], hi: s[15] }; };
 const cls = (p, t) => p <= t.lo ? "cheap" : p >= t.hi ? "dear" : "mid";
 const WORD = { cheap: "Barata", mid: "Normal", dear: "Cara" };
 
 let DATA = null, view = "hoy";
 
-function relative(p, h, isToday) {
+function relative(p, now, isToday) {
   if (!isToday) return "";
-  if (h >= p.start && h < p.end) return "En marcha ahora";
-  if (h >= p.end) return "Ya pasó";
-  const d = p.start - h;
-  return d === 1 ? "Empieza en 1 h" : `Empieza en ${d} h`;
+  if (now >= p.start && now < p.end) return "En marcha ahora";
+  if (now >= p.end) return "Ya pasó";
+  return `Empieza en ${dur(p.start - now)}`;
 }
 
 function render() {
@@ -164,8 +173,9 @@ function render() {
   const { prices, plan } = day;
   const t = tercile(prices);
   const max = Math.max(...prices), min = Math.min(...prices), avg = prices.reduce((a,b) => a+b, 0) / 24;
-  const picked = new Set(plan.flatMap(p => Array.from({ length: p.end - p.start }, (_, i) => p.start + i)));
+  const picked = new Set(plan.flatMap(p => { const r = []; for (let i = Math.floor(p.start); i < p.end; i++) r.push(i); return r; }));
   const h = now.getHours();
+  const nowF = h + now.getMinutes() / 60;
   const nowCls = cls(prices[h], t);
 
   // Próxima hora barata (solo hoy)
@@ -192,18 +202,29 @@ function render() {
   const labels = ORDER.map((i, k) => `<span>${k % 3 === 0 ? pad(i) : ""}</span>`).join("");
 
   const items = [...plan].sort((a, b) => a.start - b.start).map(p => {
-    const state = isToday ? (h >= p.start && h < p.end ? " live" : h >= p.end ? " past" : "") : "";
-    const rel = relative(p, h, isToday);
+    const state = isToday ? (nowF >= p.start && nowF < p.end ? " live" : nowF >= p.end ? " past" : "") : "";
+    const rel = relative(p, nowF, isToday);
     return `
     <div class="card item${state}">
       <div class="icon">${ICONS[p.key] || "⚡"}</div>
       <div>
-        <div class="name">${p.nombre}</div>
-        <div class="meta"><b class="${cls(p.precio_medio, t)}">${cents(p.precio_medio)} c/kWh</b> · ahorra ${p.ahorro_pct}%${rel ? " · " + rel : ""}</div>
+        <div class="name">${p.nombre} <span class="dur">${dur(p.end - p.start)}</span></div>
+        <div class="meta"><b class="${cls(p.precio_medio, t)}">${cents(p.precio_medio)} c/kWh</b>${rel ? " · " + rel : ""}</div>
+        ${p.coste_eur != null ? `<div class="cost"><b>${eur(p.coste_eur)}</b> · a las ${hm(p.peor_start)} costaría ${eur(p.coste_peor_eur)} · ahorras ${eur(p.coste_peor_eur - p.coste_eur)}</div>` : `<div class="meta">ahorra ${p.ahorro_pct}%</div>`}
       </div>
-      <div class="when"><div class="h">${pad(p.start)}:00</div><div class="to">hasta ${pad(p.end)}:00</div></div>
+      <div class="when"><div class="h">${hm(p.start)}</div><div class="to">hasta ${hm(p.end)}</div></div>
     </div>`;
   }).join("");
+
+  const hasCost = plan.every(p => p.coste_eur != null);
+  const tBest = hasCost ? plan.reduce((a, p) => a + p.coste_eur, 0) : 0;
+  const tWorst = hasCost ? plan.reduce((a, p) => a + p.coste_peor_eur, 0) : 0;
+  const summary = hasCost ? `
+    <div class="card summary">
+      <div><div class="k">Siguiendo el plan</div><div class="v cheap">${eur(tBest)}</div></div>
+      <div><div class="k">En las peores horas</div><div class="v dear">${eur(tWorst)}</div></div>
+      <div><div class="k">Ahorro del día</div><div class="v">${eur(tWorst - tBest)}</div></div>
+    </div>` : "";
 
   $("#content").innerHTML = `
     <section class="card hero" style="--glow: var(--${nowCls})">
@@ -215,13 +236,14 @@ function render() {
       </div>
     </section>
     <h2>Cuándo encender</h2>
+    ${summary}
     <div class="plan">${items}</div>
     <div class="stats">
       <div class="card stat"><div class="k">Mínimo</div><div class="v">${cents(min)}<small>${pad(prices.indexOf(min))}h</small></div></div>
       <div class="card stat"><div class="k">Media</div><div class="v">${cents(avg)}</div></div>
       <div class="card stat"><div class="k">Máximo</div><div class="v">${cents(max)}<small>${pad(prices.indexOf(max))}h</small></div></div>
     </div>
-    <p class="foot">PVPC Península sin IVA · Red Eléctrica (ESIOS) · actualizado ${DATA.updated.replace("T", " ").slice(0, 16)}</p>`;
+    <p class="foot">Costes estimados con el PVPC de energía sin impuestos ni peajes fijos (kW × h × precio) · Red Eléctrica (ESIOS) · actualizado ${DATA.updated.replace("T", " ").slice(0, 16)}</p>`;
 }
 
 $("#btnHoy").onclick = () => { view = "hoy"; render(); };
