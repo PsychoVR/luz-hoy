@@ -4,68 +4,107 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="theme-color" content="#F2F4F1">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0E1416">
 <title>Luz hoy</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #F2F4F1; --ink: #1B2A2F; --muted: #6B7A7F; --line: #D9DEDB;
-    --cheap: #2F8F5B; --mid: #E1B252; --dear: #C94A3B; --cheap-soft: #DDEFE4;
+    --bg: #0E1416; --bg2: #131B1E; --card: #18232A; --card2: #1F2C33; --line: #2A3941;
+    --ink: #F1F5F4; --muted: #8FA3A9; --soft: #C4D0D4;
+    --cheap: #3DD68C; --mid: #F5C451; --dear: #FF6B57;
+    --cheap-bg: rgba(61,214,140,.14); --mid-bg: rgba(245,196,81,.16); --dear-bg: rgba(255,107,87,.16);
+    --radius: 22px; --shadow: 0 10px 30px rgba(0,0,0,.35);
   }
+  @media (prefers-color-scheme: light) { :root:not([data-theme="dark"]) {
+    --bg: #EEF1F0; --bg2: #F6F8F7; --card: #FFFFFF; --card2: #F3F6F5; --line: #E1E7E5;
+    --ink: #101A1E; --muted: #6F8188; --soft: #3E4F56;
+    --cheap: #1FA466; --mid: #D9A227; --dear: #E04E3A;
+    --cheap-bg: rgba(31,164,102,.12); --mid-bg: rgba(217,162,39,.16); --dear-bg: rgba(224,78,58,.12);
+    --shadow: 0 10px 30px rgba(16,26,30,.08);
+  } }
+  :root[data-theme="light"] {
+    --bg: #EEF1F0; --bg2: #F6F8F7; --card: #FFFFFF; --card2: #F3F6F5; --line: #E1E7E5;
+    --ink: #101A1E; --muted: #6F8188; --soft: #3E4F56;
+    --cheap: #1FA466; --mid: #D9A227; --dear: #E04E3A;
+    --cheap-bg: rgba(31,164,102,.12); --mid-bg: rgba(217,162,39,.16); --dear-bg: rgba(224,78,58,.12);
+    --shadow: 0 10px 30px rgba(16,26,30,.08);
+  }
+
   * { box-sizing: border-box; }
   html, body { margin: 0; background: var(--bg); color: var(--ink);
-    font-family: "Instrument Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
-    font-feature-settings: "tnum"; -webkit-text-size-adjust: 100%; }
-  main { max-width: 480px; margin: 0 auto; padding: max(16px, env(safe-area-inset-top)) 18px 40px; }
+    font-family: "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif; font-feature-settings: "tnum";
+    -webkit-text-size-adjust: 100%; }
+  body { background: radial-gradient(900px 500px at 50% -120px, var(--bg2), var(--bg) 70%); min-height: 100vh; }
+  main { max-width: 480px; margin: 0 auto; padding: max(18px, env(safe-area-inset-top)) 16px 48px; }
 
-  header { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 20px; }
-  h1 { font-size: 22px; font-weight: 600; margin: 0; letter-spacing: -0.01em; }
-  h1 small { display: block; font-size: 13px; font-weight: 400; color: var(--muted); margin-top: 2px; }
-  .toggle { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; padding: 2px; background: #fff; }
-  .toggle button { border: 0; background: transparent; color: var(--muted); font: inherit; font-size: 13px;
-    padding: 6px 12px; border-radius: 999px; cursor: pointer; }
-  .toggle button[aria-pressed="true"] { background: var(--ink); color: #fff; }
-  .toggle button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+  header { display: flex; align-items: center; justify-content: space-between; margin: 4px 4px 18px; }
+  h1 { margin: 0; font-size: 24px; font-weight: 800; letter-spacing: -0.02em; }
+  h1 small { display: block; font-size: 13px; font-weight: 600; color: var(--muted); margin-top: 3px; text-transform: capitalize; }
+  .toggle { display: inline-flex; background: var(--card); border: 1px solid var(--line); border-radius: 999px; padding: 3px; box-shadow: var(--shadow); }
+  .toggle button { border: 0; background: transparent; color: var(--muted); font: inherit; font-size: 13px; font-weight: 700;
+    padding: 8px 14px; border-radius: 999px; cursor: pointer; transition: background .15s, color .15s; }
+  .toggle button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+  .toggle button:focus-visible { outline: 2px solid var(--cheap); outline-offset: 2px; }
 
-  .now { display: flex; align-items: baseline; gap: 10px; margin: 0 0 22px; }
-  .now .price { font-size: 40px; font-weight: 700; letter-spacing: -0.02em; line-height: 1; }
-  .now .price span { font-size: 15px; font-weight: 500; color: var(--muted); margin-left: 4px; }
-  .now .tag { font-size: 14px; font-weight: 600; padding: 4px 10px; border-radius: 6px; }
-  .tag.cheap { background: var(--cheap-soft); color: #1D6A40; }
-  .tag.mid   { background: #F7EBCB; color: #7A5A0E; }
-  .tag.dear  { background: #F5DCD7; color: #8E2E22; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: 20px 18px; }
 
-  /* Hero: la tira de 24 horas */
-  .strip { position: relative; height: 150px; display: grid; grid-template-columns: repeat(24, 1fr); gap: 2px;
-    align-items: end; margin-bottom: 4px; }
-  .strip .bar { border-radius: 3px 3px 0 0; min-height: 4px; position: relative; }
-  .strip .bar.cheap { background: var(--cheap); } .strip .bar.mid { background: var(--mid); } .strip .bar.dear { background: var(--dear); }
-  .strip .bar.now::after { content: ""; position: absolute; left: 50%; top: -12px; width: 0; height: 0; transform: translateX(-50%);
-    border: 5px solid transparent; border-top: 7px solid var(--ink); }
-  .strip .bar.picked { outline: 2px solid var(--ink); outline-offset: -2px; }
-  .hours { display: grid; grid-template-columns: repeat(24, 1fr); gap: 2px; font-size: 10px; color: var(--muted); margin-bottom: 26px; }
+  /* Hero */
+  .hero { position: relative; overflow: hidden; }
+  .hero::before { content: ""; position: absolute; inset: -40% -20% auto; height: 70%; pointer-events: none;
+    background: radial-gradient(60% 60% at 30% 40%, var(--glow, transparent), transparent 70%); opacity: .55; }
+  .now { position: relative; display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
+  .now .label { font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; }
+  .now .price { font-size: 52px; font-weight: 800; letter-spacing: -0.04em; line-height: 1; margin-top: 4px; }
+  .now .price small { font-size: 15px; font-weight: 600; color: var(--muted); letter-spacing: 0; margin-left: 6px; }
+  .tag { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 800; padding: 8px 12px; border-radius: 999px; white-space: nowrap; }
+  .tag::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+  .tag.cheap { background: var(--cheap-bg); color: var(--cheap); } .tag.mid { background: var(--mid-bg); color: var(--mid); } .tag.dear { background: var(--dear-bg); color: var(--dear); }
+  .next { position: relative; font-size: 13px; color: var(--soft); margin: -8px 0 18px; }
+  .next b { color: var(--ink); }
+
+  /* Gráfica 08:00 → 07:00 */
+  .chart { position: relative; }
+  .strip { position: relative; height: 130px; display: grid; grid-template-columns: repeat(24, 1fr); gap: 3px; align-items: end; }
+  .bar { position: relative; border-radius: 6px 6px 3px 3px; min-height: 6px; opacity: .92; transition: height .3s ease; }
+  .bar.cheap { background: linear-gradient(180deg, var(--cheap), color-mix(in srgb, var(--cheap) 60%, transparent)); }
+  .bar.mid   { background: linear-gradient(180deg, var(--mid),   color-mix(in srgb, var(--mid) 60%, transparent)); }
+  .bar.dear  { background: linear-gradient(180deg, var(--dear),  color-mix(in srgb, var(--dear) 60%, transparent)); }
+  .bar.picked::after { content: ""; position: absolute; left: 50%; bottom: -9px; width: 5px; height: 5px; border-radius: 50%; background: var(--ink); transform: translateX(-50%); }
+  .bar.now { box-shadow: 0 0 0 2px var(--ink); opacity: 1; }
+  .bar.now::before { content: "ahora"; position: absolute; left: 50%; top: -22px; transform: translateX(-50%); font-size: 10px; font-weight: 800;
+    color: var(--bg); background: var(--ink); padding: 2px 6px; border-radius: 6px; white-space: nowrap; }
+  .midnight { position: absolute; top: 0; bottom: 0; left: calc(16 / 24 * 100%); width: 1px; background: var(--line); }
+  .hours { display: grid; grid-template-columns: repeat(24, 1fr); gap: 3px; margin-top: 12px; font-size: 10px; font-weight: 700; color: var(--muted); }
   .hours span { text-align: center; }
-  .hours span:nth-child(3n+1) { color: var(--ink); }
+  .legend { display: flex; gap: 14px; margin-top: 14px; font-size: 11px; font-weight: 700; color: var(--muted); }
+  .legend i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 5px; vertical-align: middle; }
 
-  /* Recomendaciones */
-  ul.plan { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line); }
-  ul.plan li { display: grid; grid-template-columns: 1fr auto; grid-template-rows: auto auto; column-gap: 12px;
-    padding: 14px 0; border-bottom: 1px solid var(--line); align-items: baseline; }
-  ul.plan .name { grid-column: 1; grid-row: 1; font-size: 15px; font-weight: 500; }
-  ul.plan .detail { grid-column: 1; grid-row: 2; }
-  ul.plan .when { grid-column: 2; grid-row: 1 / span 2; align-self: center; white-space: nowrap;
-    font-size: 24px; font-weight: 700; letter-spacing: -0.02em; text-align: right; }
-  ul.plan .when b { font-weight: 700; } ul.plan .when i { font-style: normal; font-weight: 400; color: var(--muted); font-size: 16px; }
-  ul.plan .detail { font-size: 13px; color: var(--muted); margin-top: 3px; }
+  /* Plan */
+  h2 { font-size: 13px; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; margin: 26px 6px 12px; }
+  .plan { display: grid; gap: 10px; }
+  .item { display: grid; grid-template-columns: 44px 1fr auto; align-items: center; gap: 14px; padding: 14px 16px; }
+  .icon { width: 44px; height: 44px; border-radius: 14px; display: grid; place-items: center; font-size: 22px; background: var(--card2); }
+  .item .name { font-size: 15px; font-weight: 700; }
+  .item .meta { font-size: 12px; color: var(--muted); margin-top: 3px; font-weight: 600; }
+  .item .meta b { font-weight: 800; }
+  .item .meta b.cheap { color: var(--cheap); } .item .meta b.mid { color: var(--mid); } .item .meta b.dear { color: var(--dear); }
+  .when { text-align: right; }
+  .when .h { font-size: 24px; font-weight: 800; letter-spacing: -0.03em; line-height: 1; }
+  .when .to { font-size: 12px; font-weight: 700; color: var(--muted); margin-top: 3px; }
+  .item.live { border-color: var(--cheap); }
+  .item.past { opacity: .5; }
 
-  .stats { display: flex; justify-content: space-between; margin-top: 18px; font-size: 13px; color: var(--muted); }
-  .stats b { color: var(--ink); font-weight: 600; }
-  .foot { margin-top: 26px; font-size: 12px; color: var(--muted); }
-  .empty { padding: 32px 0; color: var(--muted); font-size: 15px; line-height: 1.5; }
-  @media (prefers-reduced-motion: no-preference) { .strip .bar { transition: height .25s ease; } }
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 14px; }
+  .stat { padding: 14px 12px; text-align: center; }
+  .stat .k { font-size: 11px; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+  .stat .v { font-size: 20px; font-weight: 800; letter-spacing: -0.02em; margin-top: 4px; }
+  .stat .v small { font-size: 11px; color: var(--muted); font-weight: 700; margin-left: 3px; }
+  .foot { margin: 22px 6px 0; font-size: 11px; font-weight: 600; color: var(--muted); line-height: 1.5; }
+  .empty { padding: 28px 6px; color: var(--muted); font-size: 15px; line-height: 1.5; font-weight: 600; }
+  @media (prefers-reduced-motion: reduce) { .bar, .toggle button { transition: none; } }
 </style>
 </head>
 <body>
@@ -77,82 +116,112 @@
       <button id="btnMan" aria-pressed="false">Mañana</button>
     </div>
   </header>
-
   <div id="content"></div>
 </main>
 
 <script>
 const DIAS = ["domingo","lunes","martes","miércoles","jueves","viernes","sábado"];
+const ICONS = { horno: "🔥", lavadora: "🫧", secador: "🌬️", lavavajillas: "🍽️", carga: "🔌" };
+const START_HOUR = 8;                       // la gráfica empieza a las 08:00
+const ORDER = Array.from({ length: 24 }, (_, i) => (START_HOUR + i) % 24);
 const $ = s => document.querySelector(s);
 const pad = n => String(n).padStart(2, "0");
 const madridNow = () => new Date(new Date().toLocaleString("en-US", { timeZone: "Europe/Madrid" }));
 const isoDate = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const cents = p => (p * 100).toFixed(1).replace(".", ",");
+const tercile = prices => { const s = [...prices].sort((a,b) => a-b); return { lo: s[7], hi: s[15] }; };
+const cls = (p, t) => p <= t.lo ? "cheap" : p >= t.hi ? "dear" : "mid";
+const WORD = { cheap: "Barata", mid: "Normal", dear: "Cara" };
 
 let DATA = null, view = "hoy";
 
-function tercile(prices) {
-  const s = [...prices].sort((a,b) => a-b);
-  return { lo: s[7], hi: s[15] };   // 8 baratas, 8 medias, 8 caras
+function relative(p, h, isToday) {
+  if (!isToday) return "";
+  if (h >= p.start && h < p.end) return "En marcha ahora";
+  if (h >= p.end) return "Ya pasó";
+  const d = p.start - h;
+  return d === 1 ? "Empieza en 1 h" : `Empieza en ${d} h`;
 }
-const cls = (p, t) => p <= t.lo ? "cheap" : p >= t.hi ? "dear" : "mid";
-const cents = p => (p*100).toFixed(1).replace(".", ",");
 
 function render() {
   const now = madridNow();
   const target = new Date(now); if (view === "man") target.setDate(target.getDate() + 1);
   const key = isoDate(target);
   const day = DATA && DATA.days[key];
-  $("#btnHoy").setAttribute("aria-pressed", view === "hoy");
-  $("#btnMan").setAttribute("aria-pressed", view === "man");
-  $("#title").firstChild.textContent = view === "hoy" ? "Luz hoy" : "Luz mañana";
+  const isToday = view === "hoy";
+  $("#btnHoy").setAttribute("aria-pressed", isToday);
+  $("#btnMan").setAttribute("aria-pressed", !isToday);
+  $("#title").firstChild.textContent = isToday ? "Luz hoy" : "Luz mañana";
   $("#subtitle").textContent = `${DIAS[target.getDay()]} ${pad(target.getDate())}/${pad(target.getMonth()+1)}`;
 
   if (!day) {
-    $("#content").innerHTML = `<p class="empty">${view === "man"
+    $("#content").innerHTML = `<div class="card"><p class="empty">${!isToday
       ? "Los precios de mañana se publican sobre las 20:15. Vuelve a mirar más tarde."
-      : "Todavía no hay datos de hoy. La actualización automática corre cada noche y a las 7:15; también puedes lanzarla a mano desde GitHub → Actions."}</p>`;
+      : "Todavía no hay datos de hoy. La actualización automática corre cada noche y a las 7:15; también puedes lanzarla desde GitHub → Actions."}</p></div>`;
     return;
   }
 
   const { prices, plan } = day;
   const t = tercile(prices);
-  const max = Math.max(...prices), min = Math.min(...prices);
-  const avg = prices.reduce((a,b) => a+b, 0) / 24;
-  const picked = new Set(plan.flatMap(p => Array.from({length: p.end - p.start}, (_, i) => p.start + i)));
+  const max = Math.max(...prices), min = Math.min(...prices), avg = prices.reduce((a,b) => a+b, 0) / 24;
+  const picked = new Set(plan.flatMap(p => Array.from({ length: p.end - p.start }, (_, i) => p.start + i)));
   const h = now.getHours();
+  const nowCls = cls(prices[h], t);
 
-  const nowBlock = view === "hoy" ? `
+  // Próxima hora barata (solo hoy)
+  let next = "";
+  if (isToday && nowCls !== "cheap") {
+    const nh = ORDER.slice(ORDER.indexOf(h) + 1).find(x => x > h && cls(prices[x], t) === "cheap");
+    if (nh !== undefined) next = `<p class="next">Próxima hora barata a las <b>${pad(nh)}:00</b> (${cents(prices[nh])} c/kWh)</p>`;
+  }
+
+  const hero = isToday ? `
     <div class="now">
-      <div class="price">${cents(prices[h])}<span>c/kWh a las ${pad(h)}:00</span></div>
-      <span class="tag ${cls(prices[h], t)}">${{cheap:"barata", mid:"normal", dear:"cara"}[cls(prices[h], t)]}</span>
-    </div>` : "";
+      <div><div class="label">Ahora · ${pad(h)}:00</div><div class="price">${cents(prices[h])}<small>c/kWh</small></div></div>
+      <span class="tag ${nowCls}">${WORD[nowCls]}</span>
+    </div>${next}` : `
+    <div class="now">
+      <div><div class="label">Mañana</div><div class="price">${cents(min)}<small>c/kWh mínimo a las ${pad(prices.indexOf(min))}:00</small></div></div>
+    </div>`;
 
-  const bars = prices.map((p, i) => {
-    const pct = 8 + 92 * (p - min) / (max - min || 1);
-    return `<div class="bar ${cls(p, t)} ${view === "hoy" && i === h ? "now" : ""} ${picked.has(i) ? "picked" : ""}"
-      style="height:${pct}%" title="${pad(i)}:00 · ${cents(p)} c/kWh"></div>`;
+  const bars = ORDER.map(i => {
+    const pct = 6 + 94 * (prices[i] - min) / (max - min || 1);
+    return `<div class="bar ${cls(prices[i], t)}${isToday && i === h ? " now" : ""}${picked.has(i) ? " picked" : ""}"
+      style="height:${pct}%" title="${pad(i)}:00 · ${cents(prices[i])} c/kWh"></div>`;
   }).join("");
-  const labels = prices.map((_, i) => `<span>${i % 3 === 0 ? pad(i) : ""}</span>`).join("");
+  const labels = ORDER.map((i, k) => `<span>${k % 3 === 0 ? pad(i) : ""}</span>`).join("");
 
-  const items = [...plan].sort((a,b) => a.start - b.start).map(p => `
-    <li>
-      <div class="name">${p.nombre}</div>
-      <div class="when"><b>${pad(p.start)}:00</b><i> – ${pad(p.end)}:00</i></div>
-      <div class="detail">${cents(p.precio_medio)} c/kWh · ${p.ahorro_pct}% menos que la peor franja</div>
-    </li>`).join("");
+  const items = [...plan].sort((a, b) => a.start - b.start).map(p => {
+    const state = isToday ? (h >= p.start && h < p.end ? " live" : h >= p.end ? " past" : "") : "";
+    const rel = relative(p, h, isToday);
+    return `
+    <div class="card item${state}">
+      <div class="icon">${ICONS[p.key] || "⚡"}</div>
+      <div>
+        <div class="name">${p.nombre}</div>
+        <div class="meta"><b class="${cls(p.precio_medio, t)}">${cents(p.precio_medio)} c/kWh</b> · ahorra ${p.ahorro_pct}%${rel ? " · " + rel : ""}</div>
+      </div>
+      <div class="when"><div class="h">${pad(p.start)}:00</div><div class="to">hasta ${pad(p.end)}:00</div></div>
+    </div>`;
+  }).join("");
 
-  const minH = prices.indexOf(min), maxH = prices.indexOf(max);
   $("#content").innerHTML = `
-    ${nowBlock}
-    <div class="strip" aria-label="Precio por hora">${bars}</div>
-    <div class="hours">${labels}</div>
-    <ul class="plan">${items}</ul>
+    <section class="card hero" style="--glow: var(--${nowCls})">
+      ${hero}
+      <div class="chart">
+        <div class="strip">${bars}<div class="midnight"></div></div>
+        <div class="hours">${labels}</div>
+        <div class="legend"><span><i style="background:var(--cheap)"></i>8 más baratas</span><span><i style="background:var(--mid)"></i>normales</span><span><i style="background:var(--dear)"></i>8 más caras</span></div>
+      </div>
+    </section>
+    <h2>Cuándo encender</h2>
+    <div class="plan">${items}</div>
     <div class="stats">
-      <span>Mín <b>${cents(min)}</b> (${pad(minH)}h)</span>
-      <span>Media <b>${cents(avg)}</b></span>
-      <span>Máx <b>${cents(max)}</b> (${pad(maxH)}h)</span>
+      <div class="card stat"><div class="k">Mínimo</div><div class="v">${cents(min)}<small>${pad(prices.indexOf(min))}h</small></div></div>
+      <div class="card stat"><div class="k">Media</div><div class="v">${cents(avg)}</div></div>
+      <div class="card stat"><div class="k">Máximo</div><div class="v">${cents(max)}<small>${pad(prices.indexOf(max))}h</small></div></div>
     </div>
-    <p class="foot">PVPC Península sin IVA, Red Eléctrica (ESIOS). Actualizado ${DATA.updated.replace("T"," ").slice(0,16)}.</p>`;
+    <p class="foot">PVPC Península sin IVA · Red Eléctrica (ESIOS) · actualizado ${DATA.updated.replace("T", " ").slice(0, 16)}</p>`;
 }
 
 $("#btnHoy").onclick = () => { view = "hoy"; render(); };
@@ -161,9 +230,8 @@ $("#btnMan").onclick = () => { view = "man"; render(); };
 fetch("data.json?" + Date.now(), { cache: "no-store" })
   .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
   .then(d => { DATA = d; render(); })
-  .catch(() => { $("#content").innerHTML = `<p class="empty">No se pudo leer data.json. Comprueba que la Action se ha ejecutado al menos una vez.</p>`; $("#subtitle").textContent = ""; });
+  .catch(() => { $("#content").innerHTML = `<div class="card"><p class="empty">No se pudo leer data.json. Comprueba que la Action se ha ejecutado al menos una vez.</p></div>`; $("#subtitle").textContent = ""; });
 
-// Cambia de hora sola si la dejas abierta
 setInterval(() => DATA && render(), 60000);
 </script>
 </body>
