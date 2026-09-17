@@ -24,7 +24,7 @@ APPLIANCES = [
     {"key": "lavavajillas", "nombre": "Lavavajillas",    "dur": 2.0, "ventanas": [(0, 24)],            "kw": 2.0},
     {"key": "carga",        "nombre": "Cargar móviles y portátiles", "dur": 3.0, "ventanas": [(0, 24)], "kw": 0.3},
 ]
-EVITAR_SOLAPE_KW = 1.5
+POTENCIA_CONTRATADA_KW = 4.6  # tu potencia contratada; no se programan aparatos que la superen a la vez
 
 
 def fetch_pvpc(target: date):
@@ -50,31 +50,57 @@ def fetch_pvpc(target: date):
     return [by_hour.get(h, by_hour.get(h - 1, by_hour.get(h + 1))) for h in range(24)]
 
 
-def best_window(prices, dur_h, ventanas, busy, not_before=0):
-    n = math.ceil(dur_h); best = None
+def fits(load, kw, start, end):
+    return all(load.get(h, 0) + kw <= POTENCIA_CONTRATADA_KW for h in range(start, end))
+
+
+def windows(prices, a, load, not_before=0):
+    n = math.ceil(a["dur"])
     for s in range(not_before, 24 - n + 1):
-        hrs = range(s, s + n)
-        if not any(a <= s < b for a, b in ventanas) or any(h in busy for h in hrs):
-            continue
-        cost = sum(prices[h] for h in hrs)
-        if best is None or cost < best["cost"]:
-            best = {"start": s, "end": s + n, "cost": cost}
-    return best
+        if any(lo <= s < hi for lo, hi in a["ventanas"]) and fits(load, a["kw"], s, s + n):
+            yield {"start": s, "end": s + n, "cost": sum(prices[h] for h in range(s, s + n))}
+
+
+def best_window(prices, a, load, not_before=0):
+    return min(windows(prices, a, load, not_before), key=lambda w: w["cost"], default=None)
+
+
+def occupy(load, a, w):
+    for h in range(w["start"], w["end"]):
+        load[h] = load.get(h, 0) + a["kw"]
+
+
+def describe(prices, a, w):
+    n = w["end"] - w["start"]
+    worst = max(sum(prices[h:h + n]) for h in range(0, 24 - n + 1))
+    return {"key": a["key"], "nombre": a["nombre"], "start": w["start"], "end": w["end"],
+            "precio_medio": round(w["cost"] / n, 5), "ahorro_pct": round((1 - w["cost"] / worst) * 100)}
 
 
 def plan(prices):
-    busy, out = set(), []
-    done = {}
+    """Asigna franjas en orden de prioridad respetando la potencia contratada.
+    Un aparato con dependiente (lavadora -> secador) se optimiza junto con él."""
+    load, out, done = {}, [], set()
+    dependents = {a["despues_de"]: a for a in APPLIANCES if a.get("despues_de")}
     for a in APPLIANCES:
-        nb = done[a["despues_de"]]["end"] if a.get("despues_de") in done else 0
-        w = best_window(prices, a["dur"], a["ventanas"], busy, nb) or best_window(prices, a["dur"], [(0, 24)], set())
-        n = w["end"] - w["start"]
-        worst = max(sum(prices[h:h + n]) for h in range(0, 24 - n + 1))
-        item = {"key": a["key"], "nombre": a["nombre"], "start": w["start"], "end": w["end"],
-                "precio_medio": round(w["cost"] / n, 5), "ahorro_pct": round((1 - w["cost"] / worst) * 100)}
-        done[a["key"]] = item; out.append(item)
-        if a["kw"] >= EVITAR_SOLAPE_KW:
-            busy.update(range(w["start"], w["end"]))
+        if a["key"] in done:
+            continue
+        dep = dependents.get(a["key"])
+        if dep:
+            best = None
+            for w in windows(prices, a, load):
+                l2 = dict(load); occupy(l2, a, w)
+                w2 = best_window(prices, dep, l2, not_before=w["end"])
+                if w2 and (best is None or w["cost"] + w2["cost"] < best[0]):
+                    best = (w["cost"] + w2["cost"], w, w2)
+            if best:
+                _, w, w2 = best
+                out.append(describe(prices, a, w)); occupy(load, a, w)
+                out.append(describe(prices, dep, w2)); occupy(load, dep, w2)
+                done.update([a["key"], dep["key"]])
+                continue
+        w = best_window(prices, a, load) or best_window(prices, {**a, "ventanas": [(0, 24)]}, {})
+        out.append(describe(prices, a, w)); occupy(load, a, w); done.add(a["key"])
     return out
 
 
